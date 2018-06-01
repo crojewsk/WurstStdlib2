@@ -1,6 +1,15 @@
 package DamageDetection
 import OnUnitEnterLeave
 
+/**
+	Use `addOnDamageFunc` to add a listener to any damage event that happens on the map.
+	Example:
+
+		init
+			addOnDamageFunc() ->
+				print("Damage Event with dmg: " + GetEventDamage().toString())
+*/
+
 constant SWAP_TIMEOUT = 600.
 
 boolexpr array func
@@ -12,6 +21,13 @@ constant filter = Filter(() -> addUnit(GetFilterUnit()))
 
 function addUnit(unit u)
 	current.registerUnitEvent(u, EVENT_UNIT_DAMAGED)
+
+/** Add a Action to the damage Event. */
+public function addOnDamageFunc(code c)
+	let cf = Condition(c)
+	current.addCondition(cf)
+	func[funcNext] = cf
+	funcNext++
 
 /** Add a Condition(Action) to the damage Event. */
 public function addOnDamageFunc(boolexpr cf)
@@ -29,7 +45,7 @@ public function enableDamageDetect()
 
 /** Periodic Cleanup-Function */
 function swap()
-	boolean b = IsTriggerEnabled(current)
+	var isEnabled = IsTriggerEnabled(current)
 
 	current.disable()
 	if toDestroy != null
@@ -38,7 +54,7 @@ function swap()
 	toDestroy = current
 	current = CreateTrigger()
 
-	if not b
+	if not isEnabled
 		current.disable()
 
 	for i = 0 to bj_MAX_PLAYER_SLOTS - 1

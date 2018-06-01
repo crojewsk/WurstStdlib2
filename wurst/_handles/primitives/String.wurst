@@ -1,5 +1,6 @@
 package String
 import NoWurst
+import Integer
 
 constant charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 constant numberset = "0123456789"
@@ -86,24 +87,25 @@ public function string.isUpper() returns boolean
 /** Returns the given string with whitespaces removed from both ends*/
 public function string.trim() returns string
 	int i = 0
-	while (this.charAt(i) == " ")
-		i++
 	int j = this.length()
-	while (this.charAt(j - 1) == " ")
+	while (i != j and this.charAt(i) == " ")
+		i++
+	while (i != j and this.charAt(j - 1) == " ")
 		j--
 	return this.substring(i, j)
 
 /** Returns the given string with whitespaces removed from the left end */
 public function string.ltrim() returns string
 	int i = 0
-	while (this.charAt(i) == " ")
+	int length = this.length()
+	while (i < length and this.charAt(i) == " ")
 		i++
 	return this.substring(i, this.length())
 
 /** Returns the given string with whitespaces removed from the right end */
 public function string.rtrim() returns string
 	int j = this.length()
-	while (this.charAt(j - 1) == " ")
+	while (j != 0 and this.charAt(j - 1) == " ")
 		j--
 	return this.substring(0, j)
 
@@ -195,91 +197,15 @@ public function string.replace(string oldSubstring, string newSubstring) returns
 public function string.getHash() returns int
 	return StringHash(this)		
 		
-/** Replaces 1 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1) returns string
-	return this.replace("{0}", par1)
-	
-/** Replaces 2 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-
-/** Replaces 3 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-
-/** Replaces 4 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3, string par4) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-				.replace("{3}", par4)
-	
-/** Replaces 5 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3, string par4, string par5) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-				.replace("{3}", par4)
-				.replace("{4}", par5)
-
-/** Replaces 6 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3, string par4, string par5, string par6) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-				.replace("{3}", par4)
-				.replace("{4}", par5)
-				.replace("{5}", par6)
-				
-/** Replaces 7 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3, string par4, string par5, string par6, string par7) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-				.replace("{3}", par4)
-				.replace("{4}", par5)
-				.replace("{5}", par6)
-				.replace("{6}", par7)
-	
-/** Replaces 8 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3, string par4, string par5, string par6, string par7, string par8) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-				.replace("{3}", par4)
-				.replace("{4}", par5)
-				.replace("{5}", par6)
-				.replace("{6}", par7)
-				.replace("{7}", par8)
-
-/** Replaces 9 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3, string par4, string par5, string par6, string par7, string par8, string par9) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-				.replace("{3}", par4)
-				.replace("{4}", par5)
-				.replace("{5}", par6)
-				.replace("{6}", par7)
-				.replace("{7}", par8)
-				.replace("{8}", par9)
-				
-/** Replaces 10 format item in a specified string with the string representation of a specified object **/
-public function string.format(string par1, string par2, string par3, string par4, string par5, string par6, string par7, string par8, string par9, string par10) returns string
-	return this.replace("{0}", par1)
-				.replace("{1}", par2)
-				.replace("{2}", par3)
-				.replace("{3}", par4)
-				.replace("{4}", par5)
-				.replace("{5}", par6)
-				.replace("{6}", par7)
-				.replace("{7}", par8)
-				.replace("{8}", par9)
-				.replace("{9}", par10)
-
+/** Formats the given string replacing {x} delimiters with the passed replacements. 
+	Example: "You got {0} gold".format(goldAmount) **/
+public function string.format(vararg string replacements) returns string
+	var result = this
+	var i = 0
+	for replacement in replacements
+		result = result.replace("{" + i.toString() + "}", replacement)
+		i++
+	return result
 
 public function string.iterator() returns StringIterator
 	return new StringIterator(this, 0, this.length())
@@ -335,6 +261,3 @@ public class StringLines
 /** Returns a StringLines Object of the given string for iteration */
 public function string.toLines() returns StringLines
 	return new StringLines(this, 0, this.countOccurences("\n")+1)
-		
-
-

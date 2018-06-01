@@ -32,10 +32,14 @@ public function unit.addEffect(string fx, string attachment) returns effect
 public function unit.addHP(real val)
 	this.addState(UNIT_STATE_LIFE, val)
 
-public function unit.addItem(item whichItem) returns boolean
+public function unit.addItemHandle(item whichItem) returns boolean
 	return UnitAddItem(this, whichItem)
 
 public function unit.addItemById(int itemId) returns item
+	return UnitAddItemById(this, itemId)
+
+@deprecated("Use addItemById method instead.")
+public function unit.addItem(int itemId) returns item
 	return UnitAddItemById(this, itemId)
 
 public function unit.addItemToSlot(int id, int slot) returns bool
@@ -44,11 +48,17 @@ public function unit.addItemToSlot(int id, int slot) returns bool
 public function unit.addMana(real val)
 	this.addState(UNIT_STATE_MANA, val)
 
-public function unit.addState( unitstate state, real value )
-	SetUnitState( this, state, this.getState(state) + value )
+public function unit.addState(unitstate state, real value)
+	SetUnitState(this, state, this.getState(state) + value)
 
 public function unit.addXp(int toAdd, boolean showEyeCandy)
 	AddHeroXP(this, toAdd, showEyeCandy)
+
+public function unit.suspendXp(boolean suspend)
+	SuspendHeroXP(this, suspend)
+	
+public function unit.isSuspendedXp() returns boolean
+	return IsSuspendedXP(this)
 
 public function unit.getLevel() returns int
 	return this.isType(UNIT_TYPE_HERO) ? GetHeroLevel(this) : GetUnitLevel(this)
@@ -119,7 +129,7 @@ public function unit.getFoodUsed() returns int
 	return GetFoodUsed(this.getTypeId())
 
 public function unit.getHP() returns real
-	return this.getState( UNIT_STATE_LIFE )
+	return this.getState(UNIT_STATE_LIFE)
 
 public function handle.getHandleId() returns int
 	return GetHandleId(this)
@@ -128,7 +138,7 @@ public function unit.getMana() returns real
 	return this.getState(UNIT_STATE_MANA)
 
 public function unit.getMaxHP() returns real
-	return this.getState( UNIT_STATE_MAX_LIFE )
+	return this.getState(UNIT_STATE_MAX_LIFE)
 
 public function unit.getMaxMana() returns real
 	return this.getState(UNIT_STATE_MAX_MANA)
@@ -157,8 +167,8 @@ public function unit.getPos3Zero() returns vec3
 public function unit.getPos3with(real z) returns vec3
 	return vec3(this.getX(), this.getY(), z)
 
-public function unit.getState( unitstate state ) returns real
-	return GetUnitState( this, state )
+public function unit.getState(unitstate state) returns real
+	return GetUnitState(this, state)
 
 public function unit.getTypeId() returns int
 	return GetUnitTypeId(this)
@@ -182,10 +192,12 @@ public function unit.hasItem(item whichItem) returns boolean
 	return UnitHasItem(this, whichItem)
 
 public function unit.hasItemById(int itemId) returns boolean
+	var hasItem = false
 	for slot = 0 to this.inventorySize() - 1
 		if this.itemInSlot(slot).getTypeId() == itemId
-			return true
-	return false
+			hasItem = true
+			break
+	return hasItem
 
 public function unit.hide()
 	ShowUnit(this, false)
@@ -196,7 +208,6 @@ public function unit.inventorySize() returns int
 /** Returns the number of items equipped. */
 public function unit.itemCount() returns int
 	int result = 0
-
 	for slot = 0 to this.inventorySize() - 1
 		if this.itemInSlot(slot) != null
 			result++
@@ -238,13 +249,15 @@ public function unit.issueTargetOrderById(int id, widget target) returns boolean
 public function unit.itemInSlot(int inventoryIndex) returns item
 	return UnitItemInSlot(this, inventoryIndex)
 
-/** Retrieves slot number for speficied item. */
-public function unit.itemSlot(item itm) returns int
-	if this.hasItem(itm)
+/** Retrieves slot number for speficied item or -1 if not found. */
+public function unit.getItemSlot(item whichItem) returns int
+	int result = -1
+	if this.hasItem(whichItem)
 		for slot = 0 to this.inventorySize() - 1
-			if this.itemInSlot(slot) == itm
-				return slot
-	return -1
+			if this.itemInSlot(slot) == whichItem
+				result = slot
+				break
+	return result
 
 public function unit.kill()
 	KillUnit(this)
@@ -270,6 +283,17 @@ public function unit.removeAbility(int abil) returns boolean
 public function unit.removeItem(item itm)
 	UnitRemoveItem(this, itm)
 
+/** Removes the first item of type itemId carried by the unit
+	returns true if an item was found and removed */
+public function unit.removeItemById(int itemId) returns boolean
+	boolean item_found = false
+	for slot = 0 to this.inventorySize()-1
+		if this.itemInSlot(slot).getTypeId() == itemId
+			this.removeItem(this.itemInSlot(slot))
+			item_found = true
+			break
+	return item_found
+
 public function unit.removeItemFromSlot(int slot) returns item
 	return UnitRemoveItemFromSlot(this, slot)
 
@@ -285,7 +309,7 @@ public function unit.setAnimation(string name)
 public function unit.setAnimation(int index)
 	SetUnitAnimationByIndex(this, index)
 
-public function unit.setColor( playercolor c )
+public function unit.setColor(playercolor c)
 	SetUnitColor(this, c)
 
 public function unit.setFacing(angle a)
@@ -294,8 +318,8 @@ public function unit.setFacing(angle a)
 public function unit.setFlyHeight(real height, real rate)
 	SetUnitFlyHeight(this, height, rate)
 
-public function unit.setHP( real hp )
-	this.setState( UNIT_STATE_LIFE, hp )
+public function unit.setHP(real hp)
+	this.setState(UNIT_STATE_LIFE, hp)
 
 public function unit.setInvulnerable(boolean flag)
 	SetUnitInvulnerable(this, flag)
@@ -335,14 +359,14 @@ public function unit.setPropWindow(real value)
 public function unit.setScale(real scale)
 	SetUnitScale(this, scale, scale, scale)
 
-public function unit.setState( unitstate state, real value )
-	SetUnitState( this, state, value )
+public function unit.setState(unitstate state, real value)
+	SetUnitState(this, state, value)
 
 public function unit.setTimeScale(real scale)
 	SetUnitTimeScale(this, scale)
 
-public function unit.setTimedLife( real time )
-	UnitApplyTimedLife( this, 'BTLF', time )
+public function unit.setTimedLife(real time)
+	UnitApplyTimedLife(this, 'BTLF', time)
 
 public function unit.setTurnSpeed(real speed)
 	SetUnitTurnSpeed(this, speed)
@@ -392,8 +416,8 @@ public function unit.subHP(real val)
 public function unit.subMana(real val)
 	this.subState(UNIT_STATE_MANA, val)
 
-public function unit.subState( unitstate state, real value )
-	SetUnitState( this, state, this.getState(state) - value )
+public function unit.subState(unitstate state, real value)
+	SetUnitState(this, state, this.getState(state) - value)
 
 public function unit.unpause()
 	PauseUnit(this, false)
@@ -519,3 +543,6 @@ public function unit.getAbilityManaCost(int abilId, int level) returns int
 
 public function unit.getLocalZ() returns real
 	return BlzGetLocalUnitZ(this)
+
+public function unit.isIllusion() returns bool
+	return IsUnitIllusion(this)
